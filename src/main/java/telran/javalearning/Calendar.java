@@ -74,7 +74,7 @@ public class Calendar
             String color = "";
             for (int i=1; i<8; i++) {
                 if (i==6) {
-                    color = "\033[1;33m";
+                    color = "\033[5;33m";
                 } else {
                     color = "";
                 }
