@@ -35,6 +35,19 @@ public class Calendar
 
         return res;
     }
+    public String printTitle(boolean use_design)
+    {
+        String res = "";
+        if (!use_design) {
+            res = this.printTitle();
+        } else {
+            res = "\033[1;31m" + this.month_year.year().toString() + ", " + this.local_month.getMonth() + "\033[0m";
+            int width = (WIDTH*7 - res.length())/2;
+            res = " ".repeat(width) + res;
+        }
+
+        return res;
+    }
     public String printWeekDaysHeader()
     {
         String res = "";
@@ -46,6 +59,32 @@ public class Calendar
                 tmp += " ".repeat(space_before) + DayOfWeek.of(i) + " ".repeat(space_after);
             } else {
                 res += " ".repeat(space_before) + DayOfWeek.of(i) + " ".repeat(space_after);
+            }
+        }
+
+        return res + tmp;
+    }
+    public String printWeekDaysHeader(boolean use_design)
+    {
+        String res = "";
+        String tmp = "";
+        if (!use_design) {
+            res = this.printWeekDaysHeader();
+        } else {
+            String color = "";
+            for (int i=1; i<8; i++) {
+                if (i==6) {
+                    color = "\033[1;33m";
+                } else {
+                    color = "";
+                }
+                int space_before = (WIDTH - DayOfWeek.of(i).toString().length()) / 2;
+                int space_after = WIDTH - (space_before + DayOfWeek.of(i).toString().length());
+                if (i<this.first_day_week) {
+                    tmp += " ".repeat(space_before) + color + DayOfWeek.of(i) + "\033[0m" + " ".repeat(space_after);
+                } else {
+                    res += " ".repeat(space_before) + color + DayOfWeek.of(i) + "\033[0m" + " ".repeat(space_after);
+                }
             }
         }
 

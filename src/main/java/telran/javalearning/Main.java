@@ -69,19 +69,10 @@ public class Main
             }
         }
 
-/*
-        System.out.println("Year: " + year);
-        System.out.println("Month: " + month);
-        System.out.println("First day of week: " + firstDayWeek);
-
-        Calendar calendar = new Calendar(new MonthYear(month, year));
-        int firstDM = calendar.numberFirstDayOfMonth();
-        System.out.println("First day of month: " + firstDM);
-*/
         Calendar calendar = new Calendar(new MonthYear(month, year), firstDayWeek);
-        System.out.println(calendar.printTitle());
+        System.out.println(calendar.printTitle(true));
         System.out.println(calendar.printHorizontalLine("="));
-        System.out.println(calendar.printWeekDaysHeader());
+        System.out.println(calendar.printWeekDaysHeader(true));
         System.out.println(calendar.printHorizontalLine("-"));
         System.out.println(calendar.printDates());
     }
