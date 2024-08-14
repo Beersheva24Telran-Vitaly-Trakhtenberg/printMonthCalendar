@@ -1,10 +1,9 @@
 package telran.javalearning;
 
+import java.time.DateTimeException;
 import java.time.LocalDate;
 import java.time.DayOfWeek;
-import java.util.Arrays;
-import java.util.List;
-import java.util.stream.Collectors;
+import java.time.format.DateTimeFormatter;
 record MonthYear(Integer month, Integer year) {}
 
 public class Calendar
@@ -12,7 +11,8 @@ public class Calendar
     private MonthYear month_year;
     private LocalDate local_month;
     final int WIDTH = 12;
-    int first_day_week = 1;
+    private int first_day_week = 1;
+    private DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd");
 
     public Calendar(MonthYear month_year, int first_day_week)
     {
@@ -53,9 +53,32 @@ public class Calendar
     }
     public String printDates()
     {
-        String res = "";
+        int date_week_start = 1;
+        int number_week = 0;
+        int delta = this.calculateFirstPosition();
+        StringBuilder res = new StringBuilder(this.generateDatesString(delta, date_week_start) + "\n");
+        while (true) {
+            number_week++;
+            try {
+                res.append(this.generateDatesString(1, (number_week * 7 - delta)) + "\n");
+            }
+            catch (DateTimeException e) {
+                res.append(e.getMessage());
+                break;
+            }
+        }
+        return res.toString();
+    }
 
-        return res;
+    public String printHorizontalLine(String symbol)
+    {
+        return symbol.repeat(7*WIDTH);
+    }
+
+    private int calculateFirstPosition()
+    {
+        int first_day_of_month = this.numberFirstDayOfMonth();
+        return (int)(first_day_of_month - this.first_day_week + 8) % 7;
     }
 
     private int numberFirstDayOfMonth()
@@ -75,4 +98,22 @@ public class Calendar
         return res;
     }
 
+    private String generateDatesString(int day_week_start, int date_week_start)
+    {
+        StringBuilder res = new StringBuilder(" ".repeat(WIDTH * (day_week_start - 1)));
+        int space = (WIDTH - 2) / 2;
+
+        int current_day_number = day_week_start;
+        while (current_day_number < 8) {
+            try {
+                LocalDate date = LocalDate.of(this.month_year.year(), this.month_year.month(), date_week_start);
+                res.append(" ".repeat(space)).append(date.format(this.formatter)).append(" ".repeat(space));
+            } catch (DateTimeException e) {
+                throw new DateTimeException(res.toString());
+            }
+            current_day_number++;
+            date_week_start++;
+        }
+        return res.toString();
+    }
 }
