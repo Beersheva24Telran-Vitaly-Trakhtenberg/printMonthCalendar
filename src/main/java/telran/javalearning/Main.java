@@ -69,10 +69,10 @@ public class Main
             }
         }
 
-        Calendar calendar = new Calendar(new MonthYear(month, year), firstDayWeek);
-        System.out.println(calendar.printTitle(true));
+        Calendar calendar = new Calendar(new MonthYear(month, year), firstDayWeek, true);
+        System.out.println(calendar.printTitle());
         System.out.println(calendar.printHorizontalLine("="));
-        System.out.println(calendar.printWeekDaysHeader(true));
+        System.out.println(calendar.printWeekDaysHeader());
         System.out.println(calendar.printHorizontalLine("-"));
         System.out.println(calendar.printDates());
     }

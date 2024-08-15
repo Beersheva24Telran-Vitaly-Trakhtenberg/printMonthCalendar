@@ -1,111 +1,92 @@
 package telran.javalearning;
 
-import java.time.DateTimeException;
 import java.time.LocalDate;
 import java.time.DayOfWeek;
-import java.time.format.DateTimeFormatter;
+
 record MonthYear(Integer month, Integer year) {}
 
 public class Calendar
 {
+    private final int WIDTH = 12;
+    private final String COLOR_OFF = "\033[0m";
+
     private MonthYear month_year;
     private LocalDate local_month;
-    final int WIDTH = 12;
     private int first_day_week = 1;
-    private DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd");
+    private boolean use_design = false;
+    private int number_of_weeks = 0;
+    private String[][] dates;
+    private DayOfWeek[] reordered_days_of_week = new DayOfWeek[7];
 
-    public Calendar(MonthYear month_year, int first_day_week)
+
+    public Calendar(MonthYear month_year, int first_day_week, boolean use_design)
     {
-        this.month_year = month_year;
-        this.local_month = LocalDate.of(this.month_year.year(), this.month_year.month(), 1);
         this.first_day_week = first_day_week;
-    }
-
-    public Calendar(MonthYear month_year)
-    {
         this.month_year = month_year;
         this.local_month = LocalDate.of(this.month_year.year(), this.month_year.month(), 1);
+        this.use_design = use_design;
+        reorderDaysOfWeek();
+        prepareDates();
     }
 
     public String printTitle()
     {
-        String res = this.month_year.year().toString() + ", " + this.local_month.getMonth();
+        String color = this.use_design?"\033[1;31m":"";
+        String res = color + this.month_year.year().toString() + ", " + this.local_month.getMonth() + this.COLOR_OFF;
         int width = (WIDTH*7 - res.length())/2;
         res = " ".repeat(width) + res;
 
         return res;
     }
-    public String printTitle(boolean use_design)
+
+    public String printWeekDaysHeader()
     {
-        String res = "";
-        if (!use_design) {
-            res = this.printTitle();
-        } else {
-            res = "\033[1;31m" + this.month_year.year().toString() + ", " + this.local_month.getMonth() + "\033[0m";
-            int width = (WIDTH*7 - res.length())/2;
-            res = " ".repeat(width) + res;
-        }
+        String res = printWorkingDays() + printDaysOff();
 
         return res;
     }
-    public String printWeekDaysHeader()
+
+    private void prepareDates()
     {
-        String res = "";
-        String tmp = "";
-        for (int i=1; i<8; i++) {
-            int space_before = (WIDTH - DayOfWeek.of(i).toString().length()) / 2;
-            int space_after = WIDTH - (space_before + DayOfWeek.of(i).toString().length());
-            if (i<this.first_day_week) {
-                tmp += " ".repeat(space_before) + DayOfWeek.of(i) + " ".repeat(space_after);
+        int first_day_of_month = this.getDayOfWeekOfFirstDayOfMonth();
+        int days_in_month = this.local_month.lengthOfMonth();
+
+        int days_before_first_week = (first_day_of_month - this.first_day_week + 7) % 7;
+        number_of_weeks = (days_before_first_week + days_in_month + 6) / 7;
+
+        this.dates = new String[number_of_weeks][7];
+        int day = 1;
+        for (int day_of_week = 0; day_of_week < 7; day_of_week++) {
+            if (day_of_week < days_before_first_week) {
+                dates[0][day_of_week] = "";
             } else {
-                res += " ".repeat(space_before) + DayOfWeek.of(i) + " ".repeat(space_after);
+                dates[0][day_of_week] = String.valueOf(day++);
             }
         }
-
-        return res + tmp;
-    }
-    public String printWeekDaysHeader(boolean use_design)
-    {
-        String res = "";
-        String tmp = "";
-        if (!use_design) {
-            res = this.printWeekDaysHeader();
-        } else {
-            String color = "";
-            for (int i=1; i<8; i++) {
-                if (i==6) {
-                    color = "\033[5;33m";
+        for (int week = 1; week < number_of_weeks; week++) {
+            for (int day_of_week = 0; day_of_week < 7; day_of_week++) {
+                if (day <= this.local_month.lengthOfMonth()) {
+                    dates[week][day_of_week] = String.valueOf(day++);
                 } else {
-                    color = "";
-                }
-                int space_before = (WIDTH - DayOfWeek.of(i).toString().length()) / 2;
-                int space_after = WIDTH - (space_before + DayOfWeek.of(i).toString().length());
-                if (i<this.first_day_week) {
-                    tmp += " ".repeat(space_before) + color + DayOfWeek.of(i) + "\033[0m" + " ".repeat(space_after);
-                } else {
-                    res += " ".repeat(space_before) + color + DayOfWeek.of(i) + "\033[0m" + " ".repeat(space_after);
+                    dates[week][day_of_week] = "";
                 }
             }
         }
-
-        return res + tmp;
     }
+
     public String printDates()
     {
-        int date_week_start = 1;
-        int number_week = 0;
-        int delta = this.calculateFirstPosition();
-        StringBuilder res = new StringBuilder(this.generateDatesString(delta, date_week_start) + "\n");
-        while (true) {
-            number_week++;
-            try {
-                res.append(this.generateDatesString(1, (number_week * 7 - delta)) + "\n");
+        int space = (WIDTH - 2) / 2;
+        StringBuilder res = new StringBuilder();
+
+        for (int week = 0; week < this.number_of_weeks; week++) {
+            for (int day = 0; day < 7; day++) {
+                int length = this.dates[week][day].length();
+                res.append(" ".repeat(space)).append(" ".repeat(2 - length)).append(this.dates[week][day]).append(" ".repeat(space));
             }
-            catch (DateTimeException e) {
-                res.append(e.getMessage());
-                break;
-            }
+            res.append("\n");
         }
+
         return res.toString();
     }
 
@@ -116,11 +97,13 @@ public class Calendar
 
     private int calculateFirstPosition()
     {
-        int first_day_of_month = this.numberFirstDayOfMonth();
-        return (int)(first_day_of_month - this.first_day_week + 8) % 7;
+        int res = (int)(this.getDayOfWeekOfFirstDayOfMonth() - this.first_day_week + 8) % 7;
+        if (res == 0) res = 7;
+
+        return res;
     }
 
-    private int numberFirstDayOfMonth()
+    private int getDayOfWeekOfFirstDayOfMonth()
     {
         int res = -1;
         try {
@@ -137,22 +120,47 @@ public class Calendar
         return res;
     }
 
-    private String generateDatesString(int day_week_start, int date_week_start)
+    private void reorderDaysOfWeek()
     {
-        StringBuilder res = new StringBuilder(" ".repeat(WIDTH * (day_week_start - 1)));
-        int space = (WIDTH - 2) / 2;
+        DayOfWeek[] days_of_week = DayOfWeek.values();
+        int index = 0;
 
-        int current_day_number = day_week_start;
-        while (current_day_number < 8) {
-            try {
-                LocalDate date = LocalDate.of(this.month_year.year(), this.month_year.month(), date_week_start);
-                res.append(" ".repeat(space)).append(date.format(this.formatter)).append(" ".repeat(space));
-            } catch (DateTimeException e) {
-                throw new DateTimeException(res.toString());
-            }
-            current_day_number++;
-            date_week_start++;
+        for (int i = first_day_week - 1; i < days_of_week.length; i++) {
+            this.reordered_days_of_week[index++] = days_of_week[i];
         }
+        for (int i = 0; i < first_day_week - 1; i++) {
+            this.reordered_days_of_week[index++] = days_of_week[i];
+        }
+    }
+
+    private String printWorkingDays()
+    {
+        StringBuilder res = new StringBuilder();
+        for (int day = 0; day<5; day++) {
+            int space_before = (this.WIDTH - this.reordered_days_of_week[day].toString().length()) / 2;
+            int space_after = this.WIDTH - (space_before + this.reordered_days_of_week[day].toString().length());
+            res.append(" ".repeat(space_before) + this.reordered_days_of_week[day] + " ".repeat(space_after));
+        }
+
         return res.toString();
     }
+
+    private String printDaysOff()
+    {
+        String day_of_color = this.use_design?"\033[1;33m":"";
+        String half_day_color = this.use_design?"\033[;33m":"";
+        String reset_color = "\033[0m";
+        StringBuilder res = new StringBuilder();
+
+        int space_before = (this.WIDTH - this.reordered_days_of_week[5].toString().length()) / 2;
+        int space_after = this.WIDTH - (space_before + this.reordered_days_of_week[5].toString().length());
+        res.append(" ".repeat(space_before) + half_day_color + this.reordered_days_of_week[5] + reset_color + " ".repeat(space_after));
+
+        space_before = (this.WIDTH - this.reordered_days_of_week[6].toString().length()) / 2;
+        space_after = this.WIDTH - (space_before + this.reordered_days_of_week[6].toString().length());
+        res.append(" ".repeat(space_before) + day_of_color + this.reordered_days_of_week[6] + reset_color + " ".repeat(space_after));
+
+        return res.toString();
+    }
+
 }
