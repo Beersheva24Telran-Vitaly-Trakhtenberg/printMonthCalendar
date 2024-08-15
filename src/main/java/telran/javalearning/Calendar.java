@@ -95,14 +95,6 @@ public class Calendar
         return symbol.repeat(7*WIDTH);
     }
 
-    private int calculateFirstPosition()
-    {
-        int res = (int)(this.getDayOfWeekOfFirstDayOfMonth() - this.first_day_week + 8) % 7;
-        if (res == 0) res = 7;
-
-        return res;
-    }
-
     private int getDayOfWeekOfFirstDayOfMonth()
     {
         int res = -1;
