@@ -12,12 +12,11 @@ public class Calendar
 
     private MonthYear month_year;
     private LocalDate local_month;
-    private int first_day_week = 1;
-    private boolean use_design = false;
+    private int first_day_week;
+    private boolean use_design;
     private int number_of_weeks = 0;
     private String[][] dates;
     private DayOfWeek[] reordered_days_of_week = new DayOfWeek[7];
-
 
     public Calendar(MonthYear month_year, int first_day_week, boolean use_design)
     {
@@ -41,9 +40,7 @@ public class Calendar
 
     public String printWeekDaysHeader()
     {
-        String res = printWorkingDays() + printDaysOff();
-
-        return res;
+        return printWorkingDays() + printDaysOff();
     }
 
     private void prepareDates()
@@ -131,7 +128,7 @@ public class Calendar
         for (int day = 0; day<5; day++) {
             int space_before = (this.WIDTH - this.reordered_days_of_week[day].toString().length()) / 2;
             int space_after = this.WIDTH - (space_before + this.reordered_days_of_week[day].toString().length());
-            res.append(" ".repeat(space_before) + this.reordered_days_of_week[day] + " ".repeat(space_after));
+            res.append(" ".repeat(space_before)).append(this.reordered_days_of_week[day]).append(" ".repeat(space_after));
         }
 
         return res.toString();
@@ -146,11 +143,11 @@ public class Calendar
 
         int space_before = (this.WIDTH - this.reordered_days_of_week[5].toString().length()) / 2;
         int space_after = this.WIDTH - (space_before + this.reordered_days_of_week[5].toString().length());
-        res.append(" ".repeat(space_before) + half_day_color + this.reordered_days_of_week[5] + reset_color + " ".repeat(space_after));
+        res.append(" ".repeat(space_before)).append(half_day_color).append(this.reordered_days_of_week[5]).append(reset_color).append(" ".repeat(space_after));
 
         space_before = (this.WIDTH - this.reordered_days_of_week[6].toString().length()) / 2;
         space_after = this.WIDTH - (space_before + this.reordered_days_of_week[6].toString().length());
-        res.append(" ".repeat(space_before) + day_of_color + this.reordered_days_of_week[6] + reset_color + " ".repeat(space_after));
+        res.append(" ".repeat(space_before)).append(day_of_color).append(this.reordered_days_of_week[6]).append(reset_color).append(" ".repeat(space_after));
 
         return res.toString();
     }
